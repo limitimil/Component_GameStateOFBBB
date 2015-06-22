@@ -40,6 +40,8 @@ public class newgame extends ApplicationAdapter {
 	float []bulletaccelX = new float[50];
 	float []bulletaccelY = new float[50];
 
+    //limin: test gameState
+    GameState gameState=null;
 	@Override
 	public void create () {
 		camera = new OrthographicCamera(640,480);
@@ -60,6 +62,8 @@ public class newgame extends ApplicationAdapter {
 
         camera.position.x = mainposX;
         camera.position.y = mainposY;
+
+        gameState = new GameState();
 	}
 
 	@Override
