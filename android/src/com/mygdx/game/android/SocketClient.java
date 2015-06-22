@@ -37,7 +37,6 @@ public class SocketClient{
                     stdin = new BufferedReader(new InputStreamReader(System.in));
                     in = new BufferedReader(new InputStreamReader(client.getInputStream()));
                     out = new PrintWriter(client.getOutputStream(), true);
-                    sendMessage("let start",true);
                 }catch (IOException e){
                     System.out.println("Socket connection problem");
                     System.out.println("IOException :" + e.toString());
@@ -70,7 +69,7 @@ public class SocketClient{
                 while ((tmp = in.readLine()) != null) {
                     System.out.println("tmp is:" + tmp);
                     if(tmp.equals("!")) break;
-                    result = result + tmp;
+                    result = result + tmp + '\n';
                 }
             }else{
                 result = in.readLine();

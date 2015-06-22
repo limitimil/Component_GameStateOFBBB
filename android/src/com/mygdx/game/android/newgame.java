@@ -86,6 +86,8 @@ public class newgame extends ApplicationAdapter {
 
 		accelX = Gdx.input.getAccelerometerX();
 		accelY = Gdx.input.getAccelerometerY();
+        //limin add
+        gameState.gameSensor.update(accelY,-accelX,accelY,-accelX);
 		//float accelZ = Gdx.input.getAccelerometerZ();
 		accellength = (float)Math.sqrt(accelY * accelY + accelX *accelX);
 
