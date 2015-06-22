@@ -14,11 +14,15 @@ import java.util.TimerTask;
  * my ID
  * playerStatus
  * BulletStatus
- * Some function you might want to use
+ *
+ * Some function you might want to use:
  * GameSensor.update(float,float,float,float)
  * getExistPlayer()
  * getExistBullet()
  * get[Player|Bullet][Pos|Speed|Shield]
+ *
+ * here is some Limitation:
+ * ID provide by Server can't be much than 100 because of playerStatus and bulletStatus's initialization
  */
 public class GameState extends Thread{
     public class GameSensor{
@@ -46,8 +50,8 @@ public class GameState extends Thread{
         float []shieldOrientationVector = new float[2]; //if the agent is bullet, this colume is invalid
     }
     int myID;
-    AgentInfo [][]playerStatus= new AgentInfo[10][10]; //the row indicate Hash ID, you should trace colume to find what instance you need.
-    AgentInfo [][]bulletStatus= new AgentInfo[10][10];
+    AgentInfo []playerStatus= new AgentInfo[100]; //the row indicate Hash ID, you should trace colume to find what instance you need.
+    AgentInfo []bulletStatus= new AgentInfo[100];
     //setting connection information
     final String myIP="140.113.68.27";
     final int myPort=7777;
@@ -77,7 +81,7 @@ public class GameState extends Thread{
         float[] tmp = {Float.parseFloat(vector[0]),Float.parseFloat(vector[1])};
         flo = tmp.clone();
     }
-    private void helperListToStatus(String[] list, AgentInfo[][] Status, boolean isPlayer){
+    private void helperListToStatus(String[] list, AgentInfo[] Status, boolean isPlayer){
         for(int i=0;i<list.length;i++){
             String agent_str = list[i];
             System.out.println("Now agent_str is: " + agent_str + "endofline");
@@ -85,7 +89,7 @@ public class GameState extends Thread{
             String []agent_info = agent_str.split("[:]"); //[0] is for ID ;[1] is for speed ;[2] is for position; [3] is for shield
             int ID = Integer.valueOf(agent_info[0]);
             if(isPlayer && i==0)myID = ID;
-            AgentInfo hashTarget=Status[ID%10][(ID/10) % 10];
+            AgentInfo hashTarget=Status[ID];
             hashTarget = new AgentInfo();
             hashTarget.ID = ID;
             helperStringToFloat(agent_info[1],hashTarget.speedVector);
@@ -106,8 +110,8 @@ public class GameState extends Thread{
         System.out.println("Our virtual world is "+virtual+"wait for arranging");
 
         //seperate bullet list and agent list
-        playerStatus= new AgentInfo[10][10]; //the row indicate Hash ID, you should trace colume to find what instance you need.
-        bulletStatus= new AgentInfo[10][10];
+        playerStatus= new AgentInfo[100]; //the row indicate Hash ID, you should trace colume to find what instance you need.
+        bulletStatus= new AgentInfo[100];
         String[] agent_list = str.split("[;]");
         if(agent_list.length != 2){
             System.out.println("Exception! agent list must be 2: "+ agent_list.length);
@@ -120,24 +124,22 @@ public class GameState extends Thread{
         helperListToStatus(player_list,playerStatus,true);
         helperListToStatus(bullet_list,bulletStatus,false);
     }
-    private List<Integer> getExistAgentID(AgentInfo[][] Status){
+    private List<Integer> getExistAgentID(AgentInfo[] Status){
         List<Integer> result = new ArrayList<Integer>();
         for(int i=0;i<Status.length;i++){
-            for(int j=0;j<Status[i].length;j++){
-                if (Status[i][j]!=null){
-                    result.add(Status[i][j].ID);
+                if (Status[i]!=null){
+                    result.add(Status[i].ID);
                 }
-            }
         }
         return result;
     }
-    private float[] getAgentSpeed(int Id, AgentInfo[][] Status){
-        if (Status[Id%10][Id/10] == null) System.out.println("Exception null Status Block : " + Id);
-        return Status[Id%10][Id/10].speedVector;
+    private float[] getAgentSpeed(int Id, AgentInfo[] Status){
+        if (Status[Id] == null) System.out.println("Exception null Status Block : " + Id);
+        return Status[Id].speedVector;
     }
-    private float[] getAgentPos(int Id, AgentInfo[][] Status){
-        if (Status[Id%10][Id/10] == null) System.out.println("Exception null Status Block : " + Id);
-        return Status[Id%10][Id/10].agentPosition;
+    private float[] getAgentPos(int Id, AgentInfo[] Status){
+        if (Status[Id] == null) System.out.println("Exception null Status Block : " + Id);
+        return Status[Id].agentPosition;
     }
     //Ctor
     public GameState(){
@@ -182,7 +184,7 @@ public class GameState extends Thread{
         return getAgentSpeed(Id,bulletStatus);
     }
     public float[] getPlayerShield(int Id){
-        if (playerStatus[Id%10][Id/10] == null) System.out.println("Exception null Status Block : " + Id);
-        return playerStatus[Id%10][Id/10].shieldOrientationVector;
+        if (playerStatus[Id] == null) System.out.println("Exception null Status Block : " + Id);
+        return playerStatus[Id].shieldOrientationVector;
     }
 }
