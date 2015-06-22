@@ -108,7 +108,7 @@ public class GameState extends Thread{
         //seperate bullet list and agent list
         playerStatus= new AgentInfo[10][10]; //the row indicate Hash ID, you should trace colume to find what instance you need.
         bulletStatus= new AgentInfo[10][10];
-        String[] agent_list = virtual.split("[;]");
+        String[] agent_list = str.split("[;]");
         if(agent_list.length != 2){
             System.out.println("Exception! agent list must be 2: "+ agent_list.length);
         }
