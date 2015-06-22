@@ -9,7 +9,7 @@ import java.lang.ref.WeakReference;
 /**
  * Created by L850 on 6/22/2015.
  */
-public class GameState {
+public class GameState extends Thread{
     public class AgentInfo{
         int ID;
         float []agentPosition= new float[2];
@@ -44,8 +44,16 @@ public class GameState {
     //Ctor
     public GameState(){
         myID=0;
-        socketclient = new SocketClient(myIP,myPort,new HandlerExtension(this));
-        while(socketclient.onAir == false);
-        socketclient.sendAgentStatus(0,0,0,0,0,true);
+        socketclient = new SocketClient(myIP,myPort);
+        while(socketclient.onAir == false){
+            try {
+                System.out.println("just wait for 1 sec, make sure socketclient.onAir is " + (socketclient.onAir).toString());
+                Thread.sleep(1000);
+                socketclient.sendAgentStatus(0, 0, 0, 0, 0, true);
+            }catch(InterruptedException e){
+                System.out.println("Exception occured: "+ e.toString());
+            }
+        }
     }
+
 }
