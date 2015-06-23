@@ -75,9 +75,26 @@ public class newgame extends ApplicationAdapter {
 		//bullets.dispose();
 		for(int i=0;i<10;i++) bullet[i].dispose();
 	}
-	
+    private int numberOfBullet = 50;
 	@Override
 	public void render () {
+        /*Scope Mask*/
+        System.out.println("Check gameState.myID is : "+gameState.myID);
+        mainposX = gameState.getPlayerPos(gameState.myID)[0];
+        mainposY = gameState.getPlayerPos(gameState.myID)[1];
+        numberOfBullet = gameState.getExistBullet().size();
+        float []bulletposX = new float[numberOfBullet];
+        float []bulletposY = new float[numberOfBullet];
+        float []bulletaccelX = new float[numberOfBullet];
+        float []bulletaccelY = new float[numberOfBullet];
+        List<Integer> bulletList = gameState.getExistBullet();
+        for(int i=0;i<numberOfBullet;i++){
+            bulletposX[i] = gameState.getBulletPos(bulletList.get(i))[0];
+            bulletposY[i] = gameState.getBulletPos(bulletList.get(i))[1];
+            bulletaccelX[i] = gameState.getBulletSpeed(bulletList.get(i))[0];
+            bulletaccelY[i] = gameState.getBulletSpeed(bulletList.get(i))[1];
+        }
+        /*Scope Mask Variables*/
 		Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, BACKGROUND_COLOR.a);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
@@ -107,7 +124,7 @@ public class newgame extends ApplicationAdapter {
 		sheildposX = mainposX + ((accelY / accellength) * 30);
 		sheildposY = mainposY - ((accelX / accellength) * 30);
 
-		for(int i=0;i<50;i++){
+		for(int i=0;i<numberOfBullet;i++){
 			float disX = (bulletposX[i]) - (mainposX);
 			float disY = (bulletposY[i]) - (mainposY);
 			float dis = (float)Math.sqrt(disX * disX + disY * disY);

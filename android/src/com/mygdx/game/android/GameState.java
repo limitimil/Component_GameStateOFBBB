@@ -78,34 +78,33 @@ public class GameState extends Thread{
     }
     private void helperStringToFloat(String str,float[] flo){
         String[] vector = str.split("[,]");
-        float[] tmp = {Float.parseFloat(vector[0]),Float.parseFloat(vector[1])};
-        flo = tmp.clone();
+        flo[0] = Float.parseFloat(vector[0]);
+        flo[1] = Float.parseFloat(vector[1]);
     }
     private void helperListToStatus(String[] list, AgentInfo[] Status, boolean isPlayer){
         for(int i=0;i<list.length;i++){
             String agent_str = list[i];
-            System.out.println("Now agent_str is: " + agent_str + "endofline");
             if (agent_str.isEmpty()) continue;
             String []agent_info = agent_str.split("[:]"); //[0] is for ID ;[1] is for speed ;[2] is for position; [3] is for shield
             int ID = Integer.valueOf(agent_info[0]);
             if(isPlayer && i==0)myID = ID;
-            AgentInfo hashTarget=Status[ID];
-            hashTarget = new AgentInfo();
+            AgentInfo hashTarget = new AgentInfo();
             hashTarget.ID = ID;
             helperStringToFloat(agent_info[1],hashTarget.speedVector);
             helperStringToFloat(agent_info[2],hashTarget.agentPosition);
             if(isPlayer) {
                 helperStringToFloat(agent_info[3], hashTarget.shieldOrientationVector);
             }
+            Status[ID] = hashTarget;
         }
 
     }
     private void updateWorld(String str){
         String virtual="1:1,1:1,1:1,1:1,1\n" +
-                "2:2,2:2,2:2,2\n" +
+                "2:2,2:20,20:2,2\n" +
                 ";\n" +
-                "10:1,1:1,1\n" +
-                "20:2,2:2,2\n";
+                "10:1,1:30,30\n" +
+                "20:2,2:40,40\n";
         System.out.println("Our world is "+str+"wait for arranging");
         System.out.println("Our virtual world is "+virtual+"wait for arranging");
 
@@ -172,6 +171,7 @@ public class GameState extends Thread{
         return getExistAgentID(bulletStatus);
     }
     public float[] getPlayerPos(int Id){
+        System.out.println("get Player " + Id +" position : "+getAgentPos(Id,playerStatus)[0]+","+getAgentPos(Id,playerStatus)[1]);
         return getAgentPos(Id,playerStatus);
     }
     public float[] getBulletPos(int Id){
