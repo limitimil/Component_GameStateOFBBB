@@ -109,17 +109,17 @@ public class GameState extends Thread{
 
     }
     private void updateWorld(String str){
-        String virtual="1:1,1:1,1:1,1:1,1\n" +
+        /*String virtual="1:1,1:1,1:1,1:1,1\n" +
                 "2:2,2:20,20:2,2\n" +
                 ";\n" +
                 "10:1,1:30,30\n" +
-                "20:2,2:40,40\n";
+                "20:2,2:40,40\n";*/
         System.out.println("Our world is "+str+"wait for arranging");
-        System.out.println("Our virtual world is "+virtual+"wait for arranging");
+        //System.out.println("Our virtual world is "+virtual+"wait for arranging");
 
         //seperate bullet list and agent list
-        playerStatus= new AgentInfo[100]; //the row indicate Hash ID, you should trace colume to find what instance you need.
-        bulletStatus= new AgentInfo[100];
+        AgentInfo[] playerStatus_tmp= new AgentInfo[100]; //the row indicate Hash ID, you should trace colume to find what instance you need.
+        AgentInfo[] bulletStatus_tmp= new AgentInfo[100];
         String[] agent_list = str.split("[;]");
         if(agent_list.length != 2){
             System.out.println("Exception! agent list must be 2: "+ agent_list.length);
@@ -129,8 +129,11 @@ public class GameState extends Thread{
         String []player_list = player_str.split("[\n]");
         String []bullet_list = bullet_str.split("[\n]");
 
-        helperListToStatus(player_list,playerStatus,true);
-        helperListToStatus(bullet_list,bulletStatus,false);
+        helperListToStatus(player_list,playerStatus_tmp,true);
+        helperListToStatus(bullet_list,bulletStatus_tmp,false);
+
+        playerStatus = playerStatus_tmp;
+        bulletStatus = bulletStatus_tmp;
     }
     private List<Integer> getExistAgentID(AgentInfo[] Status){
         List<Integer> result = new ArrayList<Integer>();
