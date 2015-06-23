@@ -70,21 +70,6 @@ public class GameState extends Thread{
     final int periodToSend = 200;
     //game sensor
     GameSensor gameSensor;
-    private static class HandlerExtension extends Handler {
-        private final WeakReference<GameState> currentActivity;
-
-        public HandlerExtension(GameState activity) {
-            currentActivity = new WeakReference<GameState>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message message) {
-            GameState activity = currentActivity.get();
-            if (activity != null) {
-                activity.updateWorld(message.getData().getString("result"));
-            }
-        }
-    }
     private void helperStringToFloat(String str,float[] flo){
         String[] vector = str.split("[,]");
         flo[0] = Float.parseFloat(vector[0]);
