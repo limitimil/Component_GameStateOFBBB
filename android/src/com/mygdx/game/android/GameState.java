@@ -97,7 +97,7 @@ public class GameState extends Thread{
         }
 
     }
-    private void updateWorld(String str){
+    private boolean updateWorld(String str){
         /*String virtual="1:1,1:1,1:1,1:1,1\n" +
                 "2:2,2:20,20:2,2\n" +
                 ";\n" +
@@ -113,6 +113,7 @@ public class GameState extends Thread{
         String[] agent_list = str.split("[;]");
         if(agent_list.length != 2){
             System.out.println("Exception! agent list must be 2: "+ agent_list.length);
+            return false;
         }
         String player_str = agent_list[0];
         String bullet_str = agent_list[1];
@@ -124,6 +125,7 @@ public class GameState extends Thread{
 
         playerStatus = playerStatus_tmp;
         bulletStatus = bulletStatus_tmp;
+        return true;
     }
     private List<Integer> getExistAgentID(Hashtable Status){
         Enumeration idList = Status.keys();
@@ -156,7 +158,7 @@ public class GameState extends Thread{
                 System.out.println("Exception occured: "+ e.toString());
             }
         }
-        updateWorld( socketclient.sendMessage("let start", true));
+        while(!updateWorld( socketclient.sendMessage("let start", true)));
         timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
