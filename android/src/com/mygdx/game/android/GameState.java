@@ -48,6 +48,15 @@ public class GameState extends Thread{
         float []agentPosition= new float[2];
         float []speedVector= new float[2];
         float []shieldOrientationVector = new float[2]; //if the agent is bullet, this colume is invalid
+        public AgentInfo(int id,float[] pos,float[] speed,float[] shield){
+            ID= id;
+            System.arraycopy(pos,0,agentPosition,0,pos.length);
+            System.arraycopy(speed,0,speedVector,0,speed.length);
+            System.arraycopy(shield,0,shieldOrientationVector,0,shield.length);
+        }
+        public AgentInfo(){
+
+        }
     }
     int myID;
     AgentInfo []playerStatus= new AgentInfo[100]; //the row indicate Hash ID, you should trace colume to find what instance you need.
@@ -133,12 +142,21 @@ public class GameState extends Thread{
         return result;
     }
     private float[] getAgentSpeed(int Id, AgentInfo[] Status){
-        if (Status[Id] == null) System.out.println("Exception null Status Block : " + Id);
+        if (Status[Id] == null) {
+            System.out.println("Exception null Status Block : " + Id);
+            return null;
+        }
         return Status[Id].speedVector;
     }
     private float[] getAgentPos(int Id, AgentInfo[] Status){
-        if (Status[Id] == null) System.out.println("Exception null Status Block : " + Id);
+        if (Status[Id] == null) {
+            System.out.println("Exception null Status Block : " + Id);
+            return null;
+        }
         return Status[Id].agentPosition;
+    }
+    private void storeAgentStatus(AgentInfo[] Status,AgentInfo newStatus){
+        Status[newStatus.ID] = new AgentInfo(newStatus.ID,newStatus.agentPosition,newStatus.speedVector,newStatus.shieldOrientationVector);
     }
     //Ctor
     public GameState(){
@@ -159,8 +177,14 @@ public class GameState extends Thread{
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                updateWorld(socketclient.sendAgentStatus(myID,gameSensor.speedX,gameSensor.speedY,
-                        gameSensor.shieldX,gameSensor.shieldY,true));
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateWorld(socketclient.sendAgentStatus(myID,gameSensor.speedX,gameSensor.speedY,
+                                gameSensor.shieldX,gameSensor.shieldY,true));
+                    }
+                }).start();
+
             }
         },0,periodToSend);
     }
@@ -172,13 +196,13 @@ public class GameState extends Thread{
     }
     public float[] getPlayerPos(int Id){
         System.out.println("get Player " + Id +" position : "+getAgentPos(Id,playerStatus)[0]+","+getAgentPos(Id,playerStatus)[1]);
-        return getAgentPos(Id,playerStatus);
+        return getAgentPos(Id, playerStatus);
     }
     public float[] getBulletPos(int Id){
         return getAgentPos(Id,bulletStatus);
     }
     public float[] getPlayerSpeed(int Id){
-        return getAgentSpeed(Id,playerStatus);
+        return getAgentSpeed(Id, playerStatus);
     }
     public float[] getBulletSpeed(int Id){
         return getAgentSpeed(Id,bulletStatus);
@@ -187,4 +211,6 @@ public class GameState extends Thread{
         if (playerStatus[Id] == null) System.out.println("Exception null Status Block : " + Id);
         return playerStatus[Id].shieldOrientationVector;
     }
+    public void storePlayerStatus(AgentInfo status){storeAgentStatus(playerStatus,status);}
+    public void storeBulletStatus(AgentInfo status){storeAgentStatus(bulletStatus,status);}
 }

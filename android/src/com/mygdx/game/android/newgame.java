@@ -123,7 +123,9 @@ public class newgame extends ApplicationAdapter {
 
 		sheildposX = mainposX + ((accelY / accellength) * 30);
 		sheildposY = mainposY - ((accelX / accellength) * 30);
-
+        //store back the player information
+        gameState.storePlayerStatus(gameState.new AgentInfo(gameState.myID,new float[]{mainposX,mainposY},
+                new float[]{accelY,-accelX},new float[]{accelY,-accelX}));
 		for(int i=0;i<numberOfBullet;i++){
 			float disX = (bulletposX[i]) - (mainposX);
 			float disY = (bulletposY[i]) - (mainposY);
