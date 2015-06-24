@@ -67,7 +67,7 @@ public class SocketClient{
             if (multiline) {
                 String tmp = null;
                 while ((tmp = in.readLine()) != null) {
-                    System.out.println("tmp is:" + tmp);
+                    //System.out.println("tmp is:" + tmp);
                     if(tmp.equals("!")) break;
                     result = result + tmp + '\n';
                 }

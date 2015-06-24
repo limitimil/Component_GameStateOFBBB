@@ -74,26 +74,33 @@ public class GameState extends Thread{
     final int periodToSend = 200;
     //game sensor
     GameSensor gameSensor;
+    //is update by server or not
+    boolean isUpdate;
     private void helperStringToFloat(String str,float[] flo){
         String[] vector = str.split("[,]");
         flo[0] = Float.parseFloat(vector[0]);
         flo[1] = Float.parseFloat(vector[1]);
     }
     private void helperListToStatus(String[] list, Hashtable Status, boolean isPlayer){
-        for(int i=0;i<list.length;i++){
-            String agent_str = list[i];
-            if (agent_str.isEmpty()) continue;
-            String []agent_info = agent_str.split("[:]"); //[0] is for ID ;[1] is for speed ;[2] is for position; [3] is for shield
-            int ID = Integer.valueOf(agent_info[0]);
-            if(isPlayer && i==0)myID = ID;
-            AgentInfo Target = new AgentInfo();
-            Target.ID = ID;
-            helperStringToFloat(agent_info[1],Target.speedVector);
-            helperStringToFloat(agent_info[2],Target.agentPosition);
-            if(isPlayer) {
-                helperStringToFloat(agent_info[3], Target.shieldOrientationVector);
+        try {
+            for (int i = 0; i < list.length; i++) {
+                String agent_str = list[i];
+                if (agent_str.isEmpty()) continue;
+                String[] agent_info = agent_str.split("[:]"); //[0] is for ID ;[1] is for speed ;[2] is for position; [3] is for shield
+                int ID = Integer.valueOf(agent_info[0]);
+                if (isPlayer && i == 0) myID = ID;
+                AgentInfo Target = new AgentInfo();
+                Target.ID = ID;
+                helperStringToFloat(agent_info[1], Target.speedVector);
+                helperStringToFloat(agent_info[2], Target.agentPosition);
+                if (isPlayer) {
+                    helperStringToFloat(agent_info[3], Target.shieldOrientationVector);
+                }
+                Status.put(ID, Target);
             }
-            Status.put(ID,Target);
+        }catch (Exception e){
+            System.out.println("Exception in helperListToStatus : "+ e.toString());
+            return;
         }
 
     }
@@ -125,6 +132,7 @@ public class GameState extends Thread{
 
         playerStatus = playerStatus_tmp;
         bulletStatus = bulletStatus_tmp;
+        isUpdate = true;
         return true;
     }
     private List<Integer> getExistAgentID(Hashtable Status){
@@ -136,15 +144,32 @@ public class GameState extends Thread{
         return result;
     }
     private float[] getAgentSpeed(int Id, Hashtable Status){
-        return ((AgentInfo) Status.get(Id)).speedVector;
+        try {
+            return ((AgentInfo) Status.get(Id)).speedVector;
+        }catch(Exception e){
+            System.out.println("Exception in get Agent Speed :"+e);
+            return new float[] {(float)0.0,(float)0.0};
+        }
     }
     private float[] getAgentPos(int Id, Hashtable Status){
-        return ((AgentInfo) Status.get(Id)).agentPosition;
+        try {
+            return ((AgentInfo) Status.get(Id)).agentPosition;
+        }catch(Exception e){
+            System.out.println("Exception in get Agent Speed :"+e);
+            return new float[] {(float)0.0,(float)0.0};
+        }
     }
     private void storeAgentStatus(Hashtable Status,AgentInfo newStatus){
         Status.put(newStatus.ID, new AgentInfo(newStatus.ID,newStatus.agentPosition,newStatus.speedVector,newStatus.shieldOrientationVector));
     }
     //Ctor
+    public GameState(GameState statusToCopy, boolean setIsUpdate){
+        //this copy constructor return a object with all data copied except for socket initialize and timertask, thus , updateWorld will never be called.
+        this.myID = statusToCopy.myID;
+        this.playerStatus = (Hashtable)statusToCopy.playerStatus.clone();
+        this.bulletStatus = (Hashtable)statusToCopy.bulletStatus.clone();
+        statusToCopy.isUpdate = setIsUpdate;
+    }
     public GameState(){
         myID=0;
         socketclient = new SocketClient(myIP,myPort);
@@ -194,7 +219,12 @@ public class GameState extends Thread{
         return getAgentSpeed(Id,bulletStatus);
     }
     public float[] getPlayerShield(int Id){
-        return ((AgentInfo) playerStatus.get(Id)).agentPosition;
+        try {
+            return ((AgentInfo) playerStatus.get(Id)).shieldOrientationVector;
+        }catch(Exception e){
+            System.out.println("Exception in get Agent Speed :"+e);
+            return new float[] {(float)0.0,(float)0.0};
+        }
     }
     public void storePlayerStatus(AgentInfo status){storeAgentStatus(playerStatus,status);}
     public void storeBulletStatus(AgentInfo status){storeAgentStatus(bulletStatus,status);}
