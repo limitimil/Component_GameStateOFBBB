@@ -26,8 +26,13 @@ public class newgame extends ApplicationAdapter {
 	private Sprite shieldSprite;
 
 	private Texture []bullet = new Texture[50];
-	private Sprite []bulletSprite = new Sprite[50];
-	private int []bulletbounce = new int [50];
+	private Sprite []bulletSprite_old = new Sprite[50];
+	private int []bulletbounce_old = new int [50];
+    //game world information
+    GameState gameState_Copy = null;
+    Hashtable playerSprite = new Hashtable();
+    Hashtable bulletSprite = new Hashtable();
+    Hashtable bulletbounce = new Hashtable();
 
 	float mainposX = 0, mainposY = 0;
 	float sheildposX, sheildposY;
@@ -58,12 +63,31 @@ public class newgame extends ApplicationAdapter {
 		shield.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
 		shieldSprite = new Sprite(shield);
 
-		for(int i=0;i<50;i++) regenerate(i);
 
-        camera.position.x = mainposX;
-        camera.position.y = mainposY;
-
+        camera.position.x = 0;
+        camera.position.y = 0;
+        //new Archi
         gameState = new GameState();
+        gameState_Copy = new GameState(gameState,false);
+        List<Integer> playerList = gameState_Copy.getExistPlayer();
+        for(Integer playerID: playerList){ //playerSprite.get(key) returns an array contains two Sprite, first is for MainActor, the second is for sheild
+            Texture player_t = new Texture(Gdx.files.internal("MainActor" + MathUtils.random(1, 4) + ".png"));
+            player_t.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
+            Texture sheild_t= new Texture(Gdx.files.internal("sheild"+MathUtils.random(1, 3)+".png"));
+            sheild_t.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
+            Sprite player = new Sprite(player_t);
+            Sprite sheild = new Sprite(sheild_t);
+
+            playerSprite.put(playerID,new Sprite[]{player,sheild});
+        }
+        List<Integer> bulletList = gameState_Copy.getExistBullet();
+        for(Integer bulletID: bulletList){
+            Texture bullet_t = new Texture(Gdx.files.internal("bullet"+ MathUtils.random(1, 3) +".png"));
+            bullet_t.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
+            Sprite bullet = new Sprite(bullet_t);
+            bulletSprite.put(bulletID,bullet);
+        }
+
 	}
 
 	@Override
@@ -75,88 +99,118 @@ public class newgame extends ApplicationAdapter {
 		//bullets.dispose();
 		for(int i=0;i<10;i++) bullet[i].dispose();
 	}
-    private int numberOfBullet = 50;
+    private float helperSpeedToLength(float[] speed){
+        return (float)Math.sqrt(speed[1] * speed[1]+ speed[0] * speed[0]);
+    }
 	@Override
 	public void render () {
-        /*Scope Mask*/
-        System.out.println("Check gameState.myID is : "+gameState.myID);
-        mainposX = gameState.getPlayerPos(gameState.myID)[0];
-        mainposY = gameState.getPlayerPos(gameState.myID)[1];
-        numberOfBullet = gameState.getExistBullet().size();
-        float []bulletposX = new float[numberOfBullet];
-        float []bulletposY = new float[numberOfBullet];
-        float []bulletaccelX = new float[numberOfBullet];
-        float []bulletaccelY = new float[numberOfBullet];
-        List<Integer> bulletList = gameState.getExistBullet();
-        for(int i=0;i<numberOfBullet;i++){
-            bulletposX[i] = gameState.getBulletPos(bulletList.get(i))[0];
-            bulletposY[i] = gameState.getBulletPos(bulletList.get(i))[1];
-            bulletaccelX[i] = gameState.getBulletSpeed(bulletList.get(i))[0];
-            bulletaccelY[i] = gameState.getBulletSpeed(bulletList.get(i))[1];
-        }
-        /*Scope Mask Variables*/
-		Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, BACKGROUND_COLOR.a);
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, BACKGROUND_COLOR.a);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-		accelX = Gdx.input.getAccelerometerX();
-		accelY = Gdx.input.getAccelerometerY();
-        //limin add
-        gameState.gameSensor.update(accelY,-accelX,accelY,-accelX);
-		//float accelZ = Gdx.input.getAccelerometerZ();
-		accellength = (float)Math.sqrt(accelY * accelY + accelX *accelX);
+        accelX = Gdx.input.getAccelerometerX();
+        accelY = Gdx.input.getAccelerometerY();
+        //New Archi
+        if(gameState.isUpdate){
+            gameState_Copy = new GameState(gameState,false);
+        }else{
+            //do nothing
+        }
+        List<Integer> playerList = gameState_Copy.getExistPlayer();
+        for(Integer playerID: playerList){ //playerSprite.get(key) returns an array contains two Sprite, first is for MainActor, the second is for sheild
+            if(!playerSprite.containsKey(playerID)){
+                playerSprite.put(playerID,new Sprite[]
+                        {
+                                new Sprite(new Texture(Gdx.files.internal("MainActor" + MathUtils.random(1, 4) + ".png"))),
+                                new Sprite(new Texture(Gdx.files.internal("sheild"+MathUtils.random(1, 3)+".png")))
+                        });
+            }
+            float[] Position = gameState_Copy.getPlayerPos(playerID);
+            float[] Speed = gameState_Copy.getPlayerSpeed(playerID);
+            float[] Shield = gameState_Copy.getPlayerShield(playerID);
+            if(playerID == gameState_Copy.myID){
+                Shield[0] = Speed[0] = Gdx.input.getAccelerometerY();
+                Shield[1] = Speed[1] = -Gdx.input.getAccelerometerX();
+            }
+            float speedLength = helperSpeedToLength(Speed);
+            //rotation can be infered by speedVector
+            //float rotation = (float) (Math.atan2(-Speed[0], Speed[1]) / Math.PI * 180);
+            //sheilpos can be infered by new position and shieldOrientationVector.
+            //sheildposX = mainposX + ((accelY / accellength) * 30);
+            //sheildposY = mainposY - ((accelX / accellength) * 30);
 
-		float rotation = (float) (Math.atan2(-accelY, -accelX) / Math.PI * 180);
+            Position[0] = Position[0] + Speed[0]/speedLength;
+            if(Position[0] > 960) Position[0] = 960;
+            if(Position[0] < -960) Position[0] = -960;
 
-		mainposX += accelY/accellength;
-		if(mainposX > 960) mainposX = 960;
-		if(mainposX < -960) mainposX = -960;
+            Position[1] = Position[1]+ Speed[1]/speedLength; // Position[1] - (-accelX)/accellength
+            if(Position[1] > 540) Position[1] = 540;
+            if(Position[1] < -540) Position[1] = -540;
 
-		mainposY -= accelX/accellength;
-		if(mainposY > 540) mainposY = 540;
-		if(mainposY < -540) mainposY = -540;
+            if(playerID == gameState_Copy.myID){
 
-		camera.position.x = mainposX;
-		camera.position.y = mainposY;
+                camera.position.x = Position[0];
+                camera.position.y = Position[1];
+            }
 
-		sheildposX = mainposX + ((accelY / accellength) * 30);
-		sheildposY = mainposY - ((accelX / accellength) * 30);
-        //store back the player information
-        gameState.storePlayerStatus(gameState.new AgentInfo(gameState.myID,new float[]{mainposX,mainposY},
-                new float[]{accelY,-accelX},new float[]{accelY,-accelX}));
-		for(int i=0;i<numberOfBullet;i++){
-			float disX = (bulletposX[i]) - (mainposX);
-			float disY = (bulletposY[i]) - (mainposY);
-			float dis = (float)Math.sqrt(disX * disX + disY * disY);
-			if(dis < 50 && dis > 45 && bulletbounce[i] == 0){
-				float product = (accelY / accellength) * -bulletaccelX[i] + (-accelX / accellength) * -bulletaccelY[i];
-				float angle = (float)(Math.acos(product)/ Math.PI * 180);
-				if(angle < 60) {
-					product = (disX/dis) * bulletaccelX[i] + (disY/dis) * bulletaccelY[i];
-					bulletbounce[i] = 50;
-					bulletaccelX[i] = bulletaccelX[i] - 2* product * (disX/dis);
-					bulletaccelY[i] = bulletaccelY[i] - 2* product * (disY/dis);
-				}
-			}
+            gameState_Copy.storePlayerStatus(gameState_Copy.new AgentInfo(playerID,Position,Speed,Shield));
+        }
+        List<Integer> bulletList = gameState_Copy.getExistBullet();
+        float[] mainPlayerPos = gameState_Copy.getPlayerPos(gameState_Copy.myID);
+        System.out.println("check render mainPlayerPos :"+mainPlayerPos[0]+","+mainPlayerPos[1]);
+        float[] mainPlayerSpeed = gameState_Copy.getPlayerSpeed(gameState_Copy.myID);
+        float[] mainPlayerShield = gameState_Copy.getPlayerShield(gameState_Copy.myID);
 
-			if(dis <= 30)android.os.Process.killProcess(android.os.Process.myPid());
+        for(Integer bulletID: bulletList){
+            if(!bulletSprite.containsKey(bulletID)){
+                playerSprite.put(bulletID,new Sprite(new Texture(Gdx.files.internal("bullet"+ MathUtils.random(1, 3) +".png"))));
+            }
+            float[] Position = gameState_Copy.getBulletPos(bulletID);
+            float[] Speed = gameState_Copy.getBulletSpeed(bulletID);
 
-			bulletposX[i] += bulletaccelX[i]*2;
-			bulletposY[i] += bulletaccelY[i]*2;
-			if(bulletbounce[i] > 0) bulletbounce[i] = bulletbounce[i] - 1;
-			if(bulletposX[i] > 960 || bulletposX[i] < -960 || bulletposY[i] > 540 || bulletposY[i] < -540) regenerate(i); //regenerate
-		}
-		drawing(rotation);
 
+
+            float disX = (Position[0]) - (mainPlayerPos[0]);
+            float disY = (Position[1]) - (mainPlayerPos[1]);
+            float dis = (float)Math.sqrt(disX * disX + disY * disY);
+            if(dis < 50 && dis > 45 && bulletbounce.get(bulletID) != null ){
+                float product = (mainPlayerSpeed[0] / helperSpeedToLength(mainPlayerSpeed)) * - Speed[0] +
+                        (mainPlayerSpeed[1] / helperSpeedToLength(mainPlayerSpeed)) * -Speed[1];
+                float angle = (float)(Math.acos(product)/ Math.PI * 180);
+                if(angle < 60) {
+                    product = (disX/dis) * Speed[0] + (disY/dis) * Speed[1];
+                    bulletbounce.put(bulletID,50);
+                    Speed[0] = Speed[0] - 2* product * (disX/dis);
+                    Speed[1] = Speed[1] - 2* product * (disY/dis);
+                }
+            }
+
+            if(dis <= 30)android.os.Process.killProcess(android.os.Process.myPid());
+
+            Position[0] += Speed[0]*2;
+            Position[1] += Speed[1]*2;
+            if(bulletbounce.get(bulletID) != null) {
+                if((int)bulletbounce.put(bulletID,(int)bulletbounce.get(bulletID)-1) == 0 ){
+                    bulletbounce.remove(bulletID);
+                }
+            }
+            if(Position[0] > 960 || Position[0] < -960 || Position[1] > 540 || Position[0] < -540) {
+                //what should i do?
+            }
+            gameState_Copy.storeBulletStatus(gameState_Copy.new AgentInfo(bulletID,Position,Speed,new float[]{0,0}));
+        }
+        gameState.gameSensor.update(mainPlayerSpeed[0],mainPlayerSpeed[1],mainPlayerShield[0],mainPlayerShield[1]);
+        System.out.println("check render mainPlayerSpeed :"+mainPlayerSpeed[0]+","+mainPlayerSpeed[1]);
+        drawing();
 	}
 
 	public void regenerate(int i){
 		bullet[i] = new Texture(Gdx.files.internal("bullet" + MathUtils.random(1, 3) + ".png"));
 		bullet[i].setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
-		bulletSprite[i] = new Sprite(bullet[i]);
-		bulletbounce[i] = 0;
+		bulletSprite_old[i] = new Sprite(bullet[i]);
+		bulletbounce_old[i] = 0;
 
 		int startline = MathUtils.random(1, 4);
 		switch(startline){
@@ -186,24 +240,45 @@ public class newgame extends ApplicationAdapter {
 		bulletaccelY[i] = bulletdisY / (float)Math.sqrt(bulletdisY * bulletdisY + bulletdisX *bulletdisX);
 	}
 
-	public void drawing(float rotation){
+	public void drawing(){
 		batch.begin();
 
-		batch.draw(bgTexture, -960, -540, 0, 0, 1920, 1080, 1, 1, 0.0f, 0, 0, 1920, 1080, false, false);
+        //New Archi
 
-		MainSprite.setPosition(mainposX - 25, mainposY - 25);
-		MainSprite.setRotation(rotation);
-		MainSprite.draw(batch);
+        batch.draw(bgTexture, -960, -540, 0, 0, 1920, 1080, 1, 1, 0.0f, 0, 0, 1920, 1080, false, false);
+        List<Integer> playerList = gameState_Copy.getExistPlayer();
+        for(Integer playerID: playerList){ //playerSprite.get(key) returns an array contains two Sprite, first is for MainActor, the second is for sheild
+            try {
+                float[] Position = gameState_Copy.getPlayerPos(playerID);
+                float[] Speed = gameState_Copy.getPlayerSpeed(playerID);
+                float[] Shield = gameState_Copy.getPlayerShield(playerID);
+                float rotation = (float) (Math.atan2(-Speed[0], Speed[1]) / Math.PI * 180);
+                Sprite[] playerSpriteBox = (Sprite[]) playerSprite.get(playerID);
+                playerSpriteBox[0].setPosition(Position[0] - 25, Position[1] - 25);
+                playerSpriteBox[0].setRotation(rotation);
+                playerSpriteBox[0].draw(batch);
 
-		shieldSprite.setPosition(sheildposX - 40, sheildposY - 20);
-		shieldSprite.setRotation(rotation);
-		shieldSprite.draw(batch);
+                playerSpriteBox[1].setPosition(
+                        Position[0] + ((Shield[0] / helperSpeedToLength(Speed)) * 30) - 5,
+                        Position[1] + ((Shield[1] / helperSpeedToLength(Speed)) * 30) - 5
+                );
+                playerSpriteBox[1].setRotation(rotation);
+                playerSpriteBox[1].draw(batch);
+            }catch(Exception e){
+                System.out.print("Exception in drawing : "+e);
+                System.out.println("when this id " + playerID);
+            }
+        }
 
-		for(int i=0;i<50;i++){
-			bulletSprite[i].setPosition(bulletposX[i] - 5, bulletposY[i] - 5);
-			bulletSprite[i].draw(batch);
-		}
+        List<Integer> bulletList = gameState_Copy.getExistBullet();
+        for(Integer bulletID: bulletList){
 
+            float[] Position = gameState_Copy.getBulletPos(bulletID);
+            Sprite bulletSpriteBox = (Sprite)bulletSprite.get(bulletID);
+            bulletSpriteBox.setPosition(Position[0] - 5, Position[1] - 5);
+            bulletSpriteBox.draw(batch);
+
+        }
 		batch.end();
 	}
 }

@@ -71,7 +71,7 @@ public class GameState extends Thread{
     public SocketClient socketclient= null;
     //TimerTask and Timer
     Timer timer=null;
-    final int periodToSend = 200;
+    final int periodToSend = 25;
     //game sensor
     GameSensor gameSensor;
     //is update by server or not
@@ -110,7 +110,7 @@ public class GameState extends Thread{
                 ";\n" +
                 "10:1,1:30,30\n" +
                 "20:2,2:40,40\n";*/
-        System.out.println("Our world is "+str+"wait for arranging");
+        //System.out.println("Our world is "+str+"wait for arranging");
         //System.out.println("Our virtual world is "+virtual+"wait for arranging");
 
         //seperate bullet list and agent list
@@ -139,8 +139,11 @@ public class GameState extends Thread{
         Enumeration idList = Status.keys();
         List<Integer> result = new ArrayList<Integer>();
         while(idList.hasMoreElements()){
-            result.add((int ) idList.nextElement());
+            int tmp=(int ) idList.nextElement();
+            result.add(tmp);
+            //System.out.println("check getExistAgentID loop: "+tmp);
         }
+        //System.out.println("check getExistAgentID return :" + Status.toString());
         return result;
     }
     private float[] getAgentSpeed(int Id, Hashtable Status){
@@ -200,13 +203,14 @@ public class GameState extends Thread{
         },0,periodToSend);
     }
     public List<Integer> getExistPlayer(){
+        //System.out.println("check getExistPlayerReturn :" + getExistAgentID(playerStatus));
         return getExistAgentID(playerStatus);
     }
     public List<Integer> getExistBullet(){
         return getExistAgentID(bulletStatus);
     }
     public float[] getPlayerPos(int Id){
-        System.out.println("get Player " + Id +" position : "+getAgentPos(Id,playerStatus)[0]+","+getAgentPos(Id,playerStatus)[1]);
+        //System.out.println("get Player " + Id +" position : "+getAgentPos(Id,playerStatus)[0]+","+getAgentPos(Id,playerStatus)[1]);
         return getAgentPos(Id, playerStatus);
     }
     public float[] getBulletPos(int Id){

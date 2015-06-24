@@ -51,7 +51,7 @@ public class SocketClient{
             System.out.println("connection is not set, restart and try again");
             return "error";
         }
-        System.out.println("you are sendding MSG :  "+ message);
+        //System.out.println("you are sendding MSG :  "+ message);
         String result = "";
         try{
 
@@ -74,7 +74,7 @@ public class SocketClient{
             }else{
                 result = in.readLine();
             }
-            System.out.println("The data received is : "+result);
+            //System.out.println("The data received is : "+result);
 
         } catch(java.io.IOException e){
             System.out.println("Socket connection problem");
