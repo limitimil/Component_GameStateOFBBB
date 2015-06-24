@@ -158,7 +158,7 @@ public class GameState extends Thread{
         try {
             return ((AgentInfo) Status.get(Id)).agentPosition;
         }catch(Exception e){
-            System.out.println("Exception in get Agent Speed :"+e);
+            System.out.println("Exception in get Agent Position :"+e);
             return new float[] {(float)0.0,(float)0.0};
         }
     }
@@ -226,7 +226,7 @@ public class GameState extends Thread{
         try {
             return ((AgentInfo) playerStatus.get(Id)).shieldOrientationVector;
         }catch(Exception e){
-            System.out.println("Exception in get Agent Speed :"+e);
+            System.out.println("Exception in get Agent Shield :"+e);
             return new float[] {(float)0.0,(float)0.0};
         }
     }
