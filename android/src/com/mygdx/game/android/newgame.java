@@ -275,8 +275,8 @@ public class newgame extends ApplicationAdapter {
                 playerSpriteBox[0].draw(batch);
 
                 playerSpriteBox[1].setPosition(
-                        Position[0] + ((Shield[0] / helperSpeedToLength(Speed)) * 30) - 5,
-                        Position[1] + ((Shield[1] / helperSpeedToLength(Speed)) * 30) - 5
+                        Position[0] + ((Shield[0] / helperSpeedToLength(Speed)) * 30) - 40,
+                        Position[1] + ((Shield[1] / helperSpeedToLength(Speed)) * 30) - 20
                 );
                 playerSpriteBox[1].setRotation(rotation);
                 playerSpriteBox[1].draw(batch);
